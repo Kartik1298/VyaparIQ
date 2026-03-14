@@ -1,0 +1,153 @@
+import React, { useState } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import {
+  LayoutDashboard, Upload, Package, Users, BarChart3, MapPin,
+  Warehouse, UserCheck, Navigation, Sparkles, TrendingUp,
+  ShoppingCart, Activity, Building2, Star, FileText,
+  ChevronLeft, ChevronRight, Brain, Globe, Zap, Settings
+} from 'lucide-react'
+
+const navGroups = [
+  {
+    label: 'Overview',
+    items: [
+      { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-primary-400' },
+      { path: '/realtime', icon: Activity, label: 'Live Intelligence', color: 'text-red-400' },
+      { path: '/health', icon: Zap, label: 'Business Health', color: 'text-amber-400' },
+    ]
+  },
+  {
+    label: 'Analytics',
+    items: [
+      { path: '/products', icon: Package, label: 'Product Analytics', color: 'text-blue-400' },
+      { path: '/crowd', icon: Users, label: 'Crowd Monitoring', color: 'text-emerald-400' },
+      { path: '/branches', icon: Building2, label: 'Branch Analytics', color: 'text-violet-400' },
+      { path: '/warehouse', icon: Warehouse, label: 'Warehouse', color: 'text-orange-400' },
+      { path: '/staff', icon: UserCheck, label: 'Staff Analytics', color: 'text-cyan-400' },
+    ]
+  },
+  {
+    label: 'Store Intelligence',
+    items: [
+      { path: '/heatmap', icon: MapPin, label: 'Store Heatmap', color: 'text-red-400' },
+      { path: '/journey', icon: Navigation, label: 'Customer Journey', color: 'text-pink-400' },
+      { path: '/network', icon: Globe, label: 'Product Network', color: 'text-indigo-400' },
+      { path: '/layout', icon: BarChart3, label: 'Layout Optimizer', color: 'text-teal-400' },
+    ]
+  },
+  {
+    label: 'AI Predictions',
+    items: [
+      { path: '/festivals', icon: Sparkles, label: 'Festival Demand', color: 'text-yellow-400' },
+      { path: '/competitor', icon: TrendingUp, label: 'Competition', color: 'text-rose-400' },
+      { path: '/expansion', icon: Brain, label: 'Branch Predictor', color: 'text-purple-400' },
+    ]
+  },
+  {
+    label: 'Data & Reports',
+    items: [
+      { path: '/upload', icon: Upload, label: 'Data Upload', color: 'text-sky-400' },
+      { path: '/premium', icon: Star, label: 'Premium Reports', color: 'text-amber-400' },
+      { path: '/settings', icon: Settings, label: 'Settings', color: 'text-slate-400' },
+    ]
+  },
+]
+
+interface SidebarProps {
+  collapsed: boolean
+  setCollapsed: (v: boolean) => void
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
+  const location = useLocation()
+
+  return (
+    <aside
+      className={`fixed left-0 top-0 h-full z-40 flex flex-col transition-all duration-300 ease-in-out
+        ${collapsed ? 'w-16' : 'w-64'}
+        dark:bg-slate-900/95 bg-white/95 backdrop-blur-xl
+        dark:border-r dark:border-white/5 border-r border-slate-200
+        shadow-2xl`}
+    >
+      {/* Logo */}
+      <div className={`flex items-center gap-3 px-4 py-5 border-b dark:border-white/5 border-slate-200 ${collapsed ? 'justify-center' : ''}`}>
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary-500/30">
+          <ShoppingCart className="w-5 h-5 text-white" />
+        </div>
+        {!collapsed && (
+          <div className="animate-fade-in">
+            <p className="text-sm font-bold font-display dark:text-white text-slate-900 tracking-tight">WyaparIQ</p>
+            <p className="text-xs dark:text-slate-400 text-slate-500 font-medium">AI Retail Intelligence</p>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-5">
+        {navGroups.map(group => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p className="text-xs font-semibold uppercase tracking-widest dark:text-slate-500 text-slate-400 px-3 mb-2">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(item => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === '/'}
+                  className={({ isActive }) =>
+                    `sidebar-item group ${isActive ? 'active' : 'dark:text-slate-400 text-slate-600'} ${collapsed ? 'justify-center' : ''}`
+                  }
+                  title={collapsed ? item.label : undefined}
+                >
+                  <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${
+                    location.pathname === item.path ? item.color : 'group-hover:' + item.color
+                  }`} />
+                  {!collapsed && (
+                    <span className="text-sm font-medium truncate">{item.label}</span>
+                  )}
+                  {!collapsed && location.pathname === item.path && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400" />
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Store Type Badge */}
+      {!collapsed && (
+        <div className="px-4 py-3 border-t dark:border-white/5 border-slate-200">
+          <div className="flex items-center gap-2 p-2 rounded-xl dark:bg-primary-500/10 bg-primary-50">
+            <div className="w-7 h-7 rounded-lg bg-primary-500/20 flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-primary-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold dark:text-white text-slate-900 truncate">Reliance Retail</p>
+              <p className="text-xs dark:text-slate-400 text-slate-500">Supermarket Chain</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full
+          dark:bg-slate-700 bg-white border dark:border-white/10 border-slate-200
+          flex items-center justify-center shadow-md
+          transition-all hover:scale-110 dark:text-slate-300 text-slate-600"
+      >
+        {collapsed
+          ? <ChevronRight className="w-3 h-3" />
+          : <ChevronLeft className="w-3 h-3" />
+        }
+      </button>
+    </aside>
+  )
+}
+
+export default Sidebar
