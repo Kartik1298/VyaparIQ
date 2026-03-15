@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Upload, FileText, CheckCircle, AlertCircle, X, Database, Zap, BarChart3 } from 'lucide-react'
 import PageHeader from '../components/ui/PageHeader'
 import ChartCard from '../components/ui/ChartCard'
 import Badge from '../components/ui/Badge'
 import GeneratedDashboard from '../components/analytics/GeneratedDashboard'
 import { parseCSV, analyzeData, ParsedData, AnalysisResult } from '../utils/csvParser'
+import { useData } from '../context/DataContext'
 
 type FileEntry = {
   name: string
@@ -22,6 +23,7 @@ const DataUpload: React.FC = () => {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [dragging, setDragging] = useState(false)
   const [activeDashboard, setActiveDashboard] = useState<string | null>(null)
+  const { setBusinessData } = useData()
 
   const processFile = (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase()
@@ -30,7 +32,6 @@ const DataUpload: React.FC = () => {
     const entry: FileEntry = { name: file.name, size: file.size, type: ext || '', status: 'parsing' }
     setFiles(prev => [...prev, entry])
 
-    // Read and parse the file
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
@@ -53,6 +54,14 @@ const DataUpload: React.FC = () => {
             }
           : f
         ))
+
+        // Store in global context so all pages can use it
+        setBusinessData({
+          fileName: file.name,
+          parsedData,
+          analysis,
+          uploadedAt: new Date(),
+        })
       } catch (err: any) {
         setFiles(prev => prev.map(f => f.name === file.name
           ? { ...f, status: 'error' as const, errorMessage: err.message || 'Parse error' }
@@ -134,6 +143,14 @@ const DataUpload: React.FC = () => {
           ))}
         </div>
         <p className="text-xs dark:text-slate-500 text-slate-400 mt-3">Max 50MB per file · CSV recommended for best results</p>
+
+        {/* Info: data flows to other pages */}
+        <div className="mt-4 p-3 rounded-xl dark:bg-white/5 bg-slate-100 inline-block">
+          <p className="text-xs dark:text-slate-400 text-slate-500">
+            <Zap className="w-3 h-3 inline mr-1 text-primary-400" />
+            Uploaded data automatically powers analytics across <strong className="text-primary-400">all pages</strong> — Dashboard, Products, Branches, and more
+          </p>
+        </div>
       </div>
 
       {/* File List */}
