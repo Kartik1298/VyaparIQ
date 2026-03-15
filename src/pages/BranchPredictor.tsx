@@ -1,67 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Brain, MapPin, TrendingUp, Building2, CheckCircle, Navigation, Layers } from 'lucide-react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
+import { Brain, MapPin, TrendingUp, Building2, CheckCircle, Layers } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import ChartCard from '../components/ui/ChartCard'
 import PageHeader from '../components/ui/PageHeader'
 import Badge from '../components/ui/Badge'
 import { expansionRecommendations } from '../data/mockData'
-
-// Fix Leaflet marker icons in Vite/Webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
-
-// Custom icons for existing and recommended locations
-const existingIcon = new L.DivIcon({
-  html: `<div style="
-    width:28px;height:28px;border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    border:3px solid #fff;box-shadow:0 2px 12px rgba(99,102,241,0.5);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:900;font-size:11px;font-family:system-ui;
-  "></div>`,
-  className: '',
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
-  popupAnchor: [0, -16],
-})
-
-const recommendedIcon = new L.DivIcon({
-  html: `<div style="
-    width:30px;height:30px;border-radius:50%;
-    background:linear-gradient(135deg,#f59e0b,#f97316);
-    border:3px dashed #fbbf24;box-shadow:0 2px 14px rgba(245,158,11,0.5);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:900;font-size:16px;font-family:system-ui;
-    animation:pulse-glow 2s infinite;
-  ">+</div>`,
-  className: '',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-  popupAnchor: [0, -18],
-})
-
-const selectedIcon = new L.DivIcon({
-  html: `<div style="
-    width:36px;height:36px;border-radius:50%;
-    background:linear-gradient(135deg,#ef4444,#f97316);
-    border:3px solid #fef3c7;box-shadow:0 0 20px rgba(239,68,68,0.6);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:900;font-size:13px;font-family:system-ui;
-  ">★</div>`,
-  className: '',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
-  popupAnchor: [0, -20],
-})
 
 // Indian cities with real lat/lng
 const indianCities = [
@@ -80,20 +27,10 @@ const indianCities = [
   { city: 'Indore', lat: 22.7196, lng: 75.8577, existing: false, score: 80 },
 ]
 
-// Map style selector
-const mapStyles = [
-  { name: 'Blueprint', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', attr: '&copy; CARTO' },
-  { name: 'Classic', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr: '&copy; CARTO' },
-  { name: 'Satellite', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '&copy; Esri' },
-]
-
-// Component to recenter map when selected city changes
-const MapRecenter: React.FC<{ lat: number; lng: number; zoom: number }> = ({ lat, lng, zoom }) => {
-  const map = useMap()
-  useEffect(() => {
-    map.flyTo([lat, lng], zoom, { duration: 1.2 })
-  }, [lat, lng, zoom, map])
-  return null
+const tileUrls: Record<string, { url: string; attr: string }> = {
+  Blueprint: { url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', attr: '&copy; CARTO' },
+  Classic: { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr: '&copy; CARTO' },
+  Satellite: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '&copy; Esri' },
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -106,68 +43,197 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
+// Leaflet Map component using raw L.map API
+const LeafletMap: React.FC<{
+  mapStyle: string
+  selectedCity: string | null
+  onCityClick: (city: string) => void
+}> = ({ mapStyle, selectedCity, onCityClick }) => {
+  const mapRef = useRef<L.Map | null>(null)
+  const tileRef = useRef<L.TileLayer | null>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const onCityClickRef = useRef(onCityClick)
+  onCityClickRef.current = onCityClick
+
+  // Initialize map only once
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return
+
+    const map = L.map(mapContainerRef.current, {
+      center: [22.5, 78.9] as L.LatLngExpression,
+      zoom: 5,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    })
+    mapRef.current = map
+
+    // Add initial tile layer
+    const tile = tileUrls['Blueprint']
+    tileRef.current = L.tileLayer(tile.url, { attribution: tile.attr, maxZoom: 18 }).addTo(map)
+
+    // Custom icons
+    const existingIcon = L.divIcon({
+      html: '<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:3px solid #fff;box-shadow:0 2px 12px rgba(99,102,241,0.5);"></div>',
+      className: '',
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+      popupAnchor: [0, -13],
+    })
+
+    const recommendedIcon = L.divIcon({
+      html: '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#f97316);border:3px dashed #fbbf24;box-shadow:0 2px 14px rgba(245,158,11,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;">+</div>',
+      className: '',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
+    })
+
+    // Add existing branch markers
+    indianCities.filter(c => c.existing).forEach(city => {
+      L.marker([city.lat, city.lng] as L.LatLngExpression, { icon: existingIcon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:Inter,system-ui,sans-serif;min-width:150px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;"></div>
+              <strong style="font-size:13px;">${city.city}</strong>
+            </div>
+            <div style="font-size:11px;color:#666;line-height:1.6;">
+              <div>Status: <span style="color:#10b981;font-weight:600;">Active</span></div>
+              <div>Branches: <span style="color:#333;font-weight:700;">${city.branches}</span></div>
+            </div>
+          </div>
+        `)
+
+      L.circle([city.lat, city.lng] as L.LatLngExpression, {
+        radius: 50000,
+        color: '#6366f1',
+        fillColor: '#6366f1',
+        fillOpacity: 0.06,
+        weight: 1,
+        dashArray: '4, 4',
+      }).addTo(map)
+    })
+
+    // Add recommended location markers
+    indianCities.filter(c => !c.existing).forEach(city => {
+      const recData = expansionRecommendations.find(r => r.city === city.city)
+      const marker = L.marker([city.lat, city.lng] as L.LatLngExpression, { icon: recommendedIcon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:Inter,system-ui,sans-serif;min-width:180px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;"></div>
+              <strong style="font-size:13px;">${city.city}</strong>
+            </div>
+            <div style="font-size:11px;color:#666;line-height:1.8;">
+              <div>Status: <span style="color:#f59e0b;font-weight:600;">Recommended</span></div>
+              <div>AI Score: <span style="color:#d97706;font-weight:700;font-size:14px;">${(city as any).score}/100</span></div>
+              ${recData ? `
+                <div>Population: <span style="color:#333;">${recData.population}</span></div>
+                <div>Demand: <span style="color:#10b981;">${recData.demand}</span></div>
+                <div>Competition: <span style="color:#ef4444;">${recData.competition}</span></div>
+              ` : ''}
+            </div>
+            ${recData ? `<div style="margin-top:8px;padding:6px 8px;background:rgba(99,102,241,0.08);border-radius:8px;font-size:10px;color:#6366f1;line-height:1.4;">${recData.reason}</div>` : ''}
+          </div>
+        `)
+
+      marker.on('click', () => {
+        onCityClickRef.current(city.city)
+      })
+
+      L.circle([city.lat, city.lng] as L.LatLngExpression, {
+        radius: 40000,
+        color: '#f59e0b',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.04,
+        weight: 1.5,
+        dashArray: '6, 3',
+      }).addTo(map)
+    })
+
+    return () => {
+      map.remove()
+      mapRef.current = null
+      tileRef.current = null
+    }
+  }, [])
+
+  // Fly to selected city
+  useEffect(() => {
+    if (!mapRef.current) return
+    if (selectedCity) {
+      const city = indianCities.find(c => c.city === selectedCity)
+      if (city) {
+        mapRef.current.flyTo([city.lat, city.lng] as L.LatLngExpression, 10, { duration: 1.2 })
+      }
+    } else {
+      mapRef.current.flyTo([22.5, 78.9] as L.LatLngExpression, 5, { duration: 1 })
+    }
+  }, [selectedCity])
+
+  // Change tile layer on style change
+  useEffect(() => {
+    if (!mapRef.current) return
+    if (tileRef.current) {
+      mapRef.current.removeLayer(tileRef.current)
+    }
+    const tile = tileUrls[mapStyle]
+    tileRef.current = L.tileLayer(tile.url, { attribution: tile.attr, maxZoom: 18 }).addTo(mapRef.current)
+  }, [mapStyle])
+
+  return (
+    <div
+      ref={mapContainerRef}
+      className="w-full rounded-xl overflow-hidden"
+      style={{ height: 420 }}
+    />
+  )
+}
+
 const BranchPredictor: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
-  const [mapStyle, setMapStyle] = useState(0)
+  const [mapStyle, setMapStyle] = useState('Blueprint')
   const selected = expansionRecommendations.find(c => c.city === selectedCity)
-  const selectedCityData = indianCities.find(c => c.city === selectedCity)
 
-  const mapCenter: [number, number] = selectedCityData
-    ? [selectedCityData.lat, selectedCityData.lng]
-    : [22.5, 78.9]
-  const mapZoom = selectedCityData ? 10 : 5
+  const handleCityClick = useCallback((city: string) => {
+    setSelectedCity(prev => prev === city ? null : city)
+  }, [])
 
   return (
     <div className="space-y-7">
       <style>{`
-        .blueprint-map .leaflet-container {
+        .leaflet-container {
           background: #0f172a !important;
           border-radius: 12px;
-        }
-        .blueprint-map .leaflet-tile-pane {
-          filter: saturate(0.35) brightness(0.8) contrast(1.1);
-        }
-        .blueprint-map.style-0 .leaflet-tile-pane {
-          filter: saturate(0.15) brightness(0.85) contrast(1.15) hue-rotate(200deg);
-        }
-        .blueprint-map.style-1 .leaflet-tile-pane {
-          filter: saturate(0.7) brightness(0.95) contrast(1.05);
-        }
-        .blueprint-map.style-2 .leaflet-tile-pane {
-          filter: saturate(0.8) brightness(0.9) contrast(1.1);
+          font-family: 'Inter', system-ui, sans-serif;
         }
         .leaflet-popup-content-wrapper {
-          background: rgba(15, 23, 42, 0.95) !important;
-          color: #e2e8f0 !important;
-          border: 1px solid rgba(99,102,241,0.3) !important;
+          background: rgba(255,255,255,0.97) !important;
+          color: #1e293b !important;
           border-radius: 12px !important;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
-          backdrop-filter: blur(12px) !important;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
         }
         .leaflet-popup-tip {
-          background: rgba(15, 23, 42, 0.95) !important;
+          background: rgba(255,255,255,0.97) !important;
         }
         .leaflet-popup-content {
           margin: 10px 14px !important;
-          font-family: 'Inter', system-ui, sans-serif !important;
         }
         .leaflet-control-zoom a {
-          background: rgba(15, 23, 42, 0.9) !important;
+          background: rgba(15, 23, 42, 0.85) !important;
           color: #94a3b8 !important;
           border-color: rgba(99,102,241,0.2) !important;
         }
         .leaflet-control-zoom a:hover {
-          background: rgba(99, 102, 241, 0.3) !important;
+          background: rgba(99, 102, 241, 0.4) !important;
           color: #fff !important;
         }
         .leaflet-control-attribution {
-          background: rgba(15, 23, 42, 0.7) !important;
+          background: rgba(15, 23, 42, 0.6) !important;
           color: #475569 !important;
           font-size: 9px !important;
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.4); }
-          50% { box-shadow: 0 0 20px rgba(245,158,11,0.7); }
         }
       `}</style>
 
@@ -187,123 +253,28 @@ const BranchPredictor: React.FC = () => {
             subtitle="● Existing branches  ◎ Recommended locations"
             actions={
               <div className="flex items-center gap-1.5">
-                {mapStyles.map((s, i) => (
+                {Object.keys(tileUrls).map(s => (
                   <button
-                    key={s.name}
-                    onClick={() => setMapStyle(i)}
+                    key={s}
+                    onClick={() => setMapStyle(s)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                      mapStyle === i
-                        ? 'bg-primary-500 text-white'
+                      mapStyle === s
+                        ? 'bg-primary-500 text-white shadow-sm'
                         : 'dark:bg-white/5 bg-slate-100 dark:text-slate-400 text-slate-600 dark:hover:bg-white/10 hover:bg-slate-200'
                     }`}
                   >
-                    {s.name}
+                    {s}
                   </button>
                 ))}
               </div>
             }
           >
-            <div className={`blueprint-map style-${mapStyle} rounded-xl overflow-hidden border dark:border-white/10 border-slate-200`} style={{ height: 420 }}>
-              <MapContainer
-                center={[22.5, 78.9]}
-                zoom={5}
-                style={{ height: '100%', width: '100%' }}
-                zoomControl={true}
-                scrollWheelZoom={true}
-              >
-                <TileLayer url={mapStyles[mapStyle].url} attribution={mapStyles[mapStyle].attr} />
-                <MapRecenter lat={mapCenter[0]} lng={mapCenter[1]} zoom={mapZoom} />
-
-                {/* Existing branch markers */}
-                {indianCities.filter(c => c.existing).map(city => (
-                  <React.Fragment key={city.city}>
-                    <Marker
-                      position={[city.lat, city.lng]}
-                      icon={existingIcon}
-                    >
-                      <Popup>
-                        <div style={{ minWidth: 160 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1' }} />
-                            <strong style={{ fontSize: 13, color: '#e2e8f0' }}>{city.city}</strong>
-                          </div>
-                          <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.6 }}>
-                            <div>Status: <span style={{ color: '#10b981', fontWeight: 600 }}>Active</span></div>
-                            <div>Branches: <span style={{ color: '#fff', fontWeight: 700 }}>{city.branches}</span></div>
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
-                    {/* Coverage radius circle */}
-                    <Circle
-                      center={[city.lat, city.lng]}
-                      radius={50000}
-                      pathOptions={{
-                        color: '#6366f1',
-                        fillColor: '#6366f1',
-                        fillOpacity: 0.06,
-                        weight: 1,
-                        dashArray: '4, 4',
-                      }}
-                    />
-                  </React.Fragment>
-                ))}
-
-                {/* Recommended expansion markers */}
-                {indianCities.filter(c => !c.existing).map(city => {
-                  const recData = expansionRecommendations.find(r => r.city === city.city)
-                  return (
-                    <React.Fragment key={city.city}>
-                      <Marker
-                        position={[city.lat, city.lng]}
-                        icon={selectedCity === city.city ? selectedIcon : recommendedIcon}
-                        eventHandlers={{
-                          click: () => setSelectedCity(
-                            selectedCity === city.city ? null : city.city
-                          ),
-                        }}
-                      >
-                        <Popup>
-                          <div style={{ minWidth: 180 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
-                              <strong style={{ fontSize: 13, color: '#e2e8f0' }}>{city.city}</strong>
-                            </div>
-                            <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.8 }}>
-                              <div>Status: <span style={{ color: '#f59e0b', fontWeight: 600 }}>Recommended</span></div>
-                              <div>AI Score: <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: 14 }}>{(city as any).score}/100</span></div>
-                              {recData && (
-                                <>
-                                  <div>Population: <span style={{ color: '#e2e8f0' }}>{recData.population}</span></div>
-                                  <div>Demand: <span style={{ color: '#10b981' }}>{recData.demand}</span></div>
-                                  <div>Competition: <span style={{ color: '#ef4444' }}>{recData.competition}</span></div>
-                                </>
-                              )}
-                            </div>
-                            {recData && (
-                              <div style={{ marginTop: 8, padding: '6px 8px', background: 'rgba(99,102,241,0.1)', borderRadius: 8, fontSize: 10, color: '#a5b4fc', lineHeight: 1.4 }}>
-                                {recData.reason}
-                              </div>
-                            )}
-                          </div>
-                        </Popup>
-                      </Marker>
-                      {/* Pulsing recommended zone */}
-                      <Circle
-                        center={[city.lat, city.lng]}
-                        radius={40000}
-                        pathOptions={{
-                          color: '#f59e0b',
-                          fillColor: '#f59e0b',
-                          fillOpacity: 0.04,
-                          weight: 1.5,
-                          dashArray: '6, 3',
-                        }}
-                      />
-                    </React.Fragment>
-                  )
-                })}
-              </MapContainer>
+            <div className="rounded-xl overflow-hidden border dark:border-white/10 border-slate-200">
+              <LeafletMap
+                mapStyle={mapStyle}
+                selectedCity={selectedCity}
+                onCityClick={handleCityClick}
+              />
             </div>
 
             {/* Legend */}
@@ -375,7 +346,7 @@ const BranchPredictor: React.FC = () => {
                   <span className="text-white text-xs font-bold">+</span>
                 </div>
               </div>
-              <p className="text-sm dark:text-slate-400 text-slate-500">Click any <span className="text-amber-400 font-semibold">orange marker</span> on the map to see detailed AI expansion analysis</p>
+              <p className="text-sm dark:text-slate-400 text-slate-500">Click any <span className="text-amber-400 font-semibold">orange marker</span> on the map</p>
               <p className="text-xs dark:text-slate-500 text-slate-400">{indianCities.filter(c => !c.existing).length} recommended cities available</p>
             </div>
           )}
