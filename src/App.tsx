@@ -1,6 +1,9 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import AppLayout from './components/layout/AppLayout'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ProductAnalytics from './pages/ProductAnalytics'
 import CrowdMonitoring from './pages/CrowdMonitoring'
@@ -20,10 +23,27 @@ import DataUpload from './pages/DataUpload'
 import LayoutOptimizer from './pages/LayoutOptimizer'
 import Settings from './pages/Settings'
 
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth()
+  if (isAuthenticated) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      {/* Public auth routes */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+
+      {/* Protected app routes */}
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/products" element={<ProductAnalytics />} />
         <Route path="/crowd" element={<CrowdMonitoring />} />

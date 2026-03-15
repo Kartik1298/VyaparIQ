@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Upload, Package, Users, BarChart3, MapPin,
   Warehouse, UserCheck, Navigation, Sparkles, TrendingUp,
   ShoppingCart, Activity, Building2, Star, FileText,
-  ChevronLeft, ChevronRight, Brain, Globe, Zap, Settings
+  ChevronLeft, ChevronRight, Brain, Globe, Zap, Settings, LogOut
 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 const navGroups = [
   {
@@ -60,6 +61,13 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { business, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <aside
@@ -118,18 +126,25 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         ))}
       </nav>
 
-      {/* Store Type Badge */}
+      {/* Business Info & Logout */}
       {!collapsed && (
-        <div className="px-4 py-3 border-t dark:border-white/5 border-slate-200">
+        <div className="px-4 py-3 border-t dark:border-white/5 border-slate-200 space-y-2">
           <div className="flex items-center gap-2 p-2 rounded-xl dark:bg-primary-500/10 bg-primary-50">
             <div className="w-7 h-7 rounded-lg bg-primary-500/20 flex items-center justify-center">
               <Building2 className="w-4 h-4 text-primary-400" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold dark:text-white text-slate-900 truncate">Reliance Retail</p>
-              <p className="text-xs dark:text-slate-400 text-slate-500">Supermarket Chain</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold dark:text-white text-slate-900 truncate">{business?.name || 'My Business'}</p>
+              <p className="text-xs dark:text-slate-400 text-slate-500 truncate">{business?.gstId || business?.licenseId || 'Retail Chain'}</p>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium dark:text-red-400 text-red-500 dark:hover:bg-red-500/10 hover:bg-red-50 transition-all"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sign Out
+          </button>
         </div>
       )}
 
