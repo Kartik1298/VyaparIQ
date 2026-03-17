@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Settings as SettingsIcon, Building2, Bell, Shield, Palette, Globe, Save } from 'lucide-react'
+import { Settings as SettingsIcon, Building2, Bell, Shield, Palette, Globe, Save, BookOpen, RotateCcw } from 'lucide-react'
 import PageHeader from '../components/ui/PageHeader'
 import ChartCard from '../components/ui/ChartCard'
 import { useTheme } from '../context/ThemeContext'
@@ -128,6 +128,27 @@ const Settings: React.FC = () => {
                 <option>₹ — Indian Rupee (INR)</option>
                 <option>$ — US Dollar (USD)</option>
               </select>
+            </div>
+
+            {/* Restart Tutorial */}
+            <div className="pt-2 border-t dark:border-white/5 border-slate-200">
+              <p className="text-sm dark:text-slate-300 text-slate-700 font-medium mb-3">Onboarding Tutorial</p>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('vyapaarIQ_tutorial_complete')
+                  window.location.href = '/'
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
+                  border dark:border-primary-500/30 border-primary-300
+                  dark:text-primary-400 text-primary-600 text-sm font-medium
+                  hover:dark:bg-primary-500/5 hover:bg-primary-50 transition-all"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Restart Onboarding Tutorial
+              </button>
+              <p className="text-xs dark:text-slate-500 text-slate-400 mt-2">
+                Re-experience the platform tour to discover features you might have missed.
+              </p>
             </div>
           </div>
         </ChartCard>

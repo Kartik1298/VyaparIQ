@@ -1,10 +1,32 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
+import OnboardingTutorial from '../onboarding/OnboardingTutorial'
+import AIAssistantButton from '../ui/AIAssistantButton'
 
 const AppLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    const tutorialComplete = localStorage.getItem('vyapaarIQ_tutorial_complete')
+    if (!tutorialComplete) {
+      // Small delay for the dashboard to load first
+      const timer = setTimeout(() => setShowOnboarding(true), 600)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem('vyapaarIQ_tutorial_complete', 'true')
+    setShowOnboarding(false)
+  }, [])
+
+  const handleRestartTutorial = useCallback(() => {
+    localStorage.removeItem('vyapaarIQ_tutorial_complete')
+    setShowOnboarding(true)
+  }, [])
 
   return (
     <div className="min-h-screen dark:bg-slate-950 bg-slate-50 transition-colors duration-300">
@@ -25,6 +47,14 @@ const AppLayout: React.FC = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* AI Assistant Button */}
+      <AIAssistantButton onRestartTutorial={handleRestartTutorial} />
+
+      {/* Onboarding Tutorial Overlay */}
+      {showOnboarding && (
+        <OnboardingTutorial onComplete={handleOnboardingComplete} />
+      )}
     </div>
   )
 }

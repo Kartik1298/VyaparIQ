@@ -7,6 +7,7 @@ interface BadgeProps {
   variant?: BadgeVariant
   size?: 'sm' | 'md'
   dot?: boolean
+  className?: string
 }
 
 const variants: Record<BadgeVariant, string> = {
@@ -27,11 +28,11 @@ const dotColors: Record<BadgeVariant, string> = {
   default: 'bg-slate-400',
 }
 
-const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', size = 'sm', dot }) => {
+const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', size = 'sm', dot, className = '' }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-medium
       ${size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-sm'}
-      ${variants[variant]}`}>
+      ${variants[variant]} ${className}`}>
       {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]} animate-pulse-soft`} />}
       {children}
     </span>

@@ -258,7 +258,7 @@ const StaffAnalytics: React.FC = () => {
         }
         icon={<UserCheck className="w-6 h-6 text-cyan-400" />}
         badge={hasData ? 'CSV Loaded' : 'Upload Required'}
-        badgeColor={hasData ? 'primary' : 'default'}
+        badgeColor={hasData ? 'primary' : 'amber'}
       />
 
       {/* Staff CSV Upload */}
