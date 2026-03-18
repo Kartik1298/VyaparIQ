@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, Package, Users, ShoppingBag, TrendingUp } from 'lucide-react'
+import { useTutorialSection } from '../context/TutorialContext'
 
 // Import existing page components as tab content
 import ProductAnalytics from './ProductAnalytics'
@@ -17,9 +18,10 @@ const tabs = [
 
 const SalesInsights: React.FC = () => {
   const [activeTab, setActiveTab] = useState('products')
+  useTutorialSection('sales-section')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tutorial-section="sales-section">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">

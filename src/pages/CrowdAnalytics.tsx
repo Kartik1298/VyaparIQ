@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Eye, Users, MapPin, BarChart3, Video } from 'lucide-react'
+import { useTutorialSection } from '../context/TutorialContext'
 
 // Import existing page components as tab content
 import CrowdMonitoring from './CrowdMonitoring'
@@ -15,9 +16,10 @@ const tabs = [
 
 const CrowdAnalytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState('live-feed')
+  useTutorialSection('crowd-section')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tutorial-section="crowd-section">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">

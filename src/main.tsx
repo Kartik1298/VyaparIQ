@@ -5,6 +5,7 @@ import App from './App'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { DataProvider } from './context/DataContext'
+import { TutorialProvider } from './context/TutorialContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <AuthProvider>
           <DataProvider>
-            <App />
+            <TutorialProvider>
+              <App />
+            </TutorialProvider>
           </DataProvider>
         </AuthProvider>
       </ThemeProvider>

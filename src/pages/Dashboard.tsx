@@ -91,11 +91,12 @@ const Card = ({ children, className = '' }: { children: React.ReactNode, classNa
 )
 
 /* ─── Collapsible Section ─── */
-const SectionContainer = ({ id, title, icon: Icon, badge, children, defaultOpen = true }: any) => {
+const SectionContainer = ({ id, title, icon: Icon, badge, children, defaultOpen = true, tutorialSection }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   return (
     <motion.div
       id={id}
+      data-tutorial-section={tutorialSection || id}
       className="scroll-mt-28 space-y-5"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -251,7 +252,7 @@ const Dashboard: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate('/upload')}
+            onClick={() => navigate('/dataset')}
             className="flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-2xl bg-indigo-500 text-white font-semibold hover:bg-indigo-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
           >
             <Upload className="w-4 h-4" />
@@ -271,7 +272,7 @@ const Dashboard: React.FC = () => {
       {/* ════════════════════════════════════════════ */}
       {/* SECTION 1: BUSINESS OVERVIEW               */}
       {/* ════════════════════════════════════════════ */}
-      <SectionContainer id="overview" title="Business Overview" icon={Activity} badge={`${hasData ? 'Live' : 'Demo'}`}>
+      <SectionContainer id="overview" tutorialSection="overview-kpis" title="Business Overview" icon={Activity} badge={`${hasData ? 'Live' : 'Demo'}`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {[
             { label: 'Total Sales', val: kpis.sales, prefix: '₹', icon: ShoppingBag, color: 'text-emerald-400', bg: 'bg-emerald-500/10', gradient: 'from-emerald-500/20 to-teal-500/5' },
@@ -338,11 +339,11 @@ const Dashboard: React.FC = () => {
       {/* SECTION 2: CROWD INTELLIGENCE               */}
       {/* ════════════════════════════════════════════ */}
       <div className="mt-12">
-        <SectionContainer id="crowd" title="Crowd Intelligence" icon={Users} badge="Live Monitor">
+        <SectionContainer id="crowd" tutorialSection="overview-charts" title="Crowd Intelligence" icon={Users} badge="Live Monitor">
           {/* Quick Action: Demo Cameras */}
           <div className="flex flex-wrap items-center gap-3 mb-2">
             <button
-              onClick={() => navigate('/crowd')}
+              onClick={() => navigate('/crowd-analytics')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5"
             >
               <Video className="w-4 h-4" /> Open CCTV Monitoring
@@ -606,7 +607,7 @@ const Dashboard: React.FC = () => {
       {/* SECTION 5: AI BUSINESS INSIGHTS             */}
       {/* ════════════════════════════════════════════ */}
       <div className="mt-12">
-        <SectionContainer id="insights" title="AI Business Insights" icon={Sparkles}>
+        <SectionContainer id="insights" tutorialSection="overview-insights" title="AI Business Insights" icon={Sparkles}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { title: 'Peak Shopping Hours', desc: 'Customer traffic spikes 40% between 5-8 PM. Consider adding 2 more staff members during these hours for faster checkout.', tag: 'Staffing', icon: Clock, border: 'border-l-4 border-blue-500', iconColor: 'text-blue-400' },
@@ -646,11 +647,11 @@ const Dashboard: React.FC = () => {
         <SectionContainer id="settings" title="Data & System Management" icon={Settings} defaultOpen={false}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { title: 'Upload Business Dataset', desc: 'Upload CSV with sales, products, and transaction data', icon: Upload, route: '/upload', color: 'from-indigo-500 to-violet-500', iconBg: 'bg-indigo-500/10' },
-              { title: 'CCTV Camera Monitoring', desc: 'View live camera feeds or use demo cameras', icon: Video, route: '/crowd', color: 'from-emerald-500 to-teal-500', iconBg: 'bg-emerald-500/10' },
-              { title: 'Branch Management', desc: 'Manage store branches, locations, and performance', icon: Building2, route: '/branches', color: 'from-purple-500 to-fuchsia-500', iconBg: 'bg-purple-500/10' },
-              { title: 'Staff Analytics', desc: 'Upload staff data for HR and productivity insights', icon: UserCheck, route: '/staff', color: 'from-cyan-500 to-sky-500', iconBg: 'bg-cyan-500/10' },
-              { title: 'Store Heatmap', desc: 'Analyze in-store traffic zones and layout optimization', icon: MapPin, route: '/heatmap', color: 'from-rose-500 to-pink-500', iconBg: 'bg-rose-500/10' },
+              { title: 'Upload Business Dataset', desc: 'Upload CSV with sales, products, and transaction data', icon: Upload, route: '/dataset', color: 'from-indigo-500 to-violet-500', iconBg: 'bg-indigo-500/10' },
+              { title: 'CCTV Camera Monitoring', desc: 'View live camera feeds or use demo cameras', icon: Video, route: '/crowd-analytics', color: 'from-emerald-500 to-teal-500', iconBg: 'bg-emerald-500/10' },
+              { title: 'Branch Management', desc: 'Manage store branches, locations, and performance', icon: Building2, route: '/competitors', color: 'from-purple-500 to-fuchsia-500', iconBg: 'bg-purple-500/10' },
+              { title: 'Staff Analytics', desc: 'Upload staff data for HR and productivity insights', icon: UserCheck, route: '/predictions', color: 'from-cyan-500 to-sky-500', iconBg: 'bg-cyan-500/10' },
+              { title: 'Store Heatmap', desc: 'Analyze in-store traffic zones and layout optimization', icon: MapPin, route: '/crowd-analytics', color: 'from-rose-500 to-pink-500', iconBg: 'bg-rose-500/10' },
               { title: 'System Settings', desc: 'Configure preferences, theme, and language', icon: Settings, route: '/settings', color: 'from-slate-500 to-gray-500', iconBg: 'bg-slate-500/10' },
             ].map((item, i) => (
               <motion.div key={i}

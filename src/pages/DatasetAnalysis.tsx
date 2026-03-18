@@ -6,6 +6,7 @@ import Badge from '../components/ui/Badge'
 import GeneratedDashboard from '../components/analytics/GeneratedDashboard'
 import { parseCSV, analyzeData, ParsedData, AnalysisResult } from '../utils/csvParser'
 import { useData } from '../context/DataContext'
+import { useTutorialSection } from '../context/TutorialContext'
 
 type FileEntry = {
   name: string
@@ -25,6 +26,7 @@ const DatasetAnalysis: React.FC = () => {
   const [activeDashboard, setActiveDashboard] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('upload')
   const { setBusinessData, businessData } = useData()
+  useTutorialSection('dataset-section')
 
   const processFile = (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase()
@@ -92,7 +94,7 @@ const DatasetAnalysis: React.FC = () => {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tutorial-section="dataset-section">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
