@@ -5,22 +5,11 @@ import AppLayout from './components/layout/AppLayout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
-import ProductAnalytics from './pages/ProductAnalytics'
-import CrowdMonitoring from './pages/CrowdMonitoring'
-import StoreHeatmap from './pages/StoreHeatmap'
-import BranchAnalytics from './pages/BranchAnalytics'
-import WarehouseAnalytics from './pages/WarehouseAnalytics'
-import StaffAnalytics from './pages/StaffAnalytics'
-import BranchPredictor from './pages/BranchPredictor'
-import FestivalDemand from './pages/FestivalDemand'
-import CompetitorMonitoring from './pages/CompetitorMonitoring'
-import CustomerJourney from './pages/CustomerJourney'
-import ProductNetwork from './pages/ProductNetwork'
-import RealTimePanel from './pages/RealTimePanel'
-import BusinessHealth from './pages/BusinessHealth'
-import PremiumReports from './pages/PremiumReports'
-import DataUpload from './pages/DataUpload'
-import LayoutOptimizer from './pages/LayoutOptimizer'
+import CrowdAnalytics from './pages/CrowdAnalytics'
+import SalesInsights from './pages/SalesInsights'
+import CompetitorIntelligence from './pages/CompetitorIntelligence'
+import PredictionsPage from './pages/PredictionsPage'
+import DatasetAnalysis from './pages/DatasetAnalysis'
 import Settings from './pages/Settings'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -42,25 +31,14 @@ function App() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-      {/* Protected app routes */}
+      {/* Protected app routes — 6 main sections */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/products" element={<ProductAnalytics />} />
-        <Route path="/crowd" element={<CrowdMonitoring />} />
-        <Route path="/heatmap" element={<StoreHeatmap />} />
-        <Route path="/branches" element={<BranchAnalytics />} />
-        <Route path="/warehouse" element={<WarehouseAnalytics />} />
-        <Route path="/staff" element={<StaffAnalytics />} />
-        <Route path="/expansion" element={<BranchPredictor />} />
-        <Route path="/festivals" element={<FestivalDemand />} />
-        <Route path="/competitor" element={<CompetitorMonitoring />} />
-        <Route path="/journey" element={<CustomerJourney />} />
-        <Route path="/network" element={<ProductNetwork />} />
-        <Route path="/realtime" element={<RealTimePanel />} />
-        <Route path="/health" element={<BusinessHealth />} />
-        <Route path="/premium" element={<PremiumReports />} />
-        <Route path="/upload" element={<DataUpload />} />
-        <Route path="/layout" element={<LayoutOptimizer />} />
+        <Route path="/crowd-analytics" element={<CrowdAnalytics />} />
+        <Route path="/sales" element={<SalesInsights />} />
+        <Route path="/competitors" element={<CompetitorIntelligence />} />
+        <Route path="/predictions" element={<PredictionsPage />} />
+        <Route path="/dataset" element={<DatasetAnalysis />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

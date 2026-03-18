@@ -1,57 +1,23 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Upload, Package, Users, BarChart3, MapPin,
-  Warehouse, UserCheck, Navigation, Sparkles, TrendingUp,
-  ShoppingCart, Activity, Building2, Star, FileText,
-  ChevronLeft, ChevronRight, Brain, Globe, Zap, Settings, LogOut
+  LayoutDashboard, Upload, Users, TrendingUp,
+  ShoppingCart, ChevronLeft, ChevronRight, Brain, Settings, LogOut,
+  Eye, Target, Building2, BarChart3, Database
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-const navGroups = [
-  {
-    label: 'Overview',
-    items: [
-      { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-primary-400' },
-      { path: '/realtime', icon: Activity, label: 'Live Intelligence', color: 'text-red-400' },
-      { path: '/health', icon: Zap, label: 'Business Health', color: 'text-amber-400' },
-    ]
-  },
-  {
-    label: 'Analytics',
-    items: [
-      { path: '/products', icon: Package, label: 'Product Analytics', color: 'text-blue-400' },
-      { path: '/crowd', icon: Users, label: 'Crowd Monitoring', color: 'text-emerald-400' },
-      { path: '/branches', icon: Building2, label: 'Branch Analytics', color: 'text-violet-400' },
-      { path: '/warehouse', icon: Warehouse, label: 'Warehouse', color: 'text-orange-400' },
-      { path: '/staff', icon: UserCheck, label: 'Staff Analytics', color: 'text-cyan-400' },
-    ]
-  },
-  {
-    label: 'Store Intelligence',
-    items: [
-      { path: '/heatmap', icon: MapPin, label: 'Store Heatmap', color: 'text-red-400' },
-      { path: '/journey', icon: Navigation, label: 'Customer Journey', color: 'text-pink-400' },
-      { path: '/network', icon: Globe, label: 'Product Network', color: 'text-indigo-400' },
-      { path: '/layout', icon: BarChart3, label: 'Layout Optimizer', color: 'text-teal-400' },
-    ]
-  },
-  {
-    label: 'AI Predictions',
-    items: [
-      { path: '/festivals', icon: Sparkles, label: 'Festival Demand', color: 'text-yellow-400' },
-      { path: '/competitor', icon: TrendingUp, label: 'Competition', color: 'text-rose-400' },
-      { path: '/expansion', icon: Brain, label: 'Branch Predictor', color: 'text-purple-400' },
-    ]
-  },
-  {
-    label: 'Data & Reports',
-    items: [
-      { path: '/upload', icon: Upload, label: 'Data Upload', color: 'text-sky-400' },
-      { path: '/premium', icon: Star, label: 'Premium Reports', color: 'text-amber-400' },
-      { path: '/settings', icon: Settings, label: 'Settings', color: 'text-slate-400' },
-    ]
-  },
+const navItems = [
+  { path: '/', icon: LayoutDashboard, label: 'Overview Dashboard', color: 'text-primary-400' },
+  { path: '/crowd-analytics', icon: Eye, label: 'Crowd Analytics', color: 'text-emerald-400' },
+  { path: '/sales', icon: BarChart3, label: 'Sales & Insights', color: 'text-blue-400' },
+  { path: '/competitors', icon: Target, label: 'Competitor Intel', color: 'text-rose-400' },
+  { path: '/predictions', icon: Brain, label: 'Predictions', color: 'text-purple-400' },
+  { path: '/dataset', icon: Database, label: 'Dataset & Analysis', color: 'text-sky-400' },
+]
+
+const bottomItems = [
+  { path: '/settings', icon: Settings, label: 'Settings', color: 'text-slate-400' },
 ]
 
 interface SidebarProps {
@@ -69,6 +35,28 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
     navigate('/login')
   }
 
+  const renderNavItem = (item: typeof navItems[0]) => (
+    <NavLink
+      key={item.path}
+      to={item.path}
+      end={item.path === '/'}
+      className={({ isActive }) =>
+        `sidebar-item group ${isActive ? 'active' : 'dark:text-slate-400 text-slate-600'} ${collapsed ? 'justify-center' : ''}`
+      }
+      title={collapsed ? item.label : undefined}
+    >
+      <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${
+        location.pathname === item.path ? item.color : 'group-hover:' + item.color
+      }`} />
+      {!collapsed && (
+        <span className="text-sm font-medium truncate">{item.label}</span>
+      )}
+      {!collapsed && location.pathname === item.path && (
+        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400" />
+      )}
+    </NavLink>
+  )
+
   return (
     <aside
       className={`fixed left-0 top-0 h-full z-40 flex flex-col transition-all duration-300 ease-in-out
@@ -84,46 +72,34 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         </div>
         {!collapsed && (
           <div className="animate-fade-in">
-            <p className="text-sm font-bold font-display dark:text-white text-slate-900 tracking-tight">WyaparIQ</p>
+            <p className="text-sm font-bold font-display dark:text-white text-slate-900 tracking-tight">VyapaarIQ</p>
             <p className="text-xs dark:text-slate-400 text-slate-500 font-medium">AI Retail Intelligence</p>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-5">
-        {navGroups.map(group => (
-          <div key={group.label}>
-            {!collapsed && (
-              <p className="text-xs font-semibold uppercase tracking-widest dark:text-slate-500 text-slate-400 px-3 mb-2">
-                {group.label}
-              </p>
-            )}
-            <div className="space-y-0.5">
-              {group.items.map(item => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) =>
-                    `sidebar-item group ${isActive ? 'active' : 'dark:text-slate-400 text-slate-600'} ${collapsed ? 'justify-center' : ''}`
-                  }
-                  title={collapsed ? item.label : undefined}
-                >
-                  <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${
-                    location.pathname === item.path ? item.color : 'group-hover:' + item.color
-                  }`} />
-                  {!collapsed && (
-                    <span className="text-sm font-medium truncate">{item.label}</span>
-                  )}
-                  {!collapsed && location.pathname === item.path && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400" />
-                  )}
-                </NavLink>
-              ))}
-            </div>
-          </div>
-        ))}
+      {/* Main Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2">
+        {!collapsed && (
+          <p className="text-xs font-semibold uppercase tracking-widest dark:text-slate-500 text-slate-400 px-3 mb-3">
+            Main Menu
+          </p>
+        )}
+        <div className="space-y-1">
+          {navItems.map(renderNavItem)}
+        </div>
+
+        {/* Divider */}
+        <div className="my-4 mx-3 border-t dark:border-white/5 border-slate-200" />
+        
+        {!collapsed && (
+          <p className="text-xs font-semibold uppercase tracking-widest dark:text-slate-500 text-slate-400 px-3 mb-3">
+            System
+          </p>
+        )}
+        <div className="space-y-1">
+          {bottomItems.map(renderNavItem)}
+        </div>
       </nav>
 
       {/* Business Info & Logout */}
