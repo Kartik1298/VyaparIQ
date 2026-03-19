@@ -1,6 +1,7 @@
 import React from 'react'
 import { Bell, Search, Sun, Moon, ChevronDown } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
+import { useLanguage } from '../../context/LanguageContext'
 
 interface TopBarProps {
   sidebarCollapsed: boolean
@@ -8,6 +9,7 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ sidebarCollapsed }) => {
   const { isDark, toggleTheme } = useTheme()
+  const { language, setLanguage } = useLanguage()
 
   return (
     <header
@@ -35,6 +37,18 @@ const TopBar: React.FC<TopBarProps> = ({ sidebarCollapsed }) => {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
+        {/* Language */}
+        <select
+          value={language}
+          onChange={e => setLanguage(e.target.value as any)}
+          className="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium
+            dark:bg-white/5 bg-slate-100 border dark:border-white/10 border-slate-200
+            dark:text-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+        >
+          <option value="en">EN</option>
+          <option value="hi">HI</option>
+          <option value="mr">MR</option>
+        </select>
         {/* Notifications */}
         <button className="relative w-9 h-9 rounded-xl dark:bg-white/5 bg-slate-100 flex items-center justify-center
           dark:hover:bg-white/10 hover:bg-slate-200 transition-colors group">

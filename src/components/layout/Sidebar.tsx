@@ -6,6 +6,7 @@ import {
   Eye, Target, Building2, BarChart3, Database
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Overview Dashboard', color: 'text-primary-400' },
@@ -29,6 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const { business, logout } = useAuth()
+  const { t } = useLanguage()
 
   const handleLogout = () => {
     logout()
@@ -49,7 +51,23 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
         location.pathname === item.path ? item.color : 'group-hover:' + item.color
       }`} />
       {!collapsed && (
-        <span className="text-sm font-medium truncate">{item.label}</span>
+        <span className="text-sm font-medium truncate">
+          {item.path === '/'
+            ? t('nav.dashboard', item.label)
+            : item.path === '/crowd-analytics'
+            ? t('nav.crowd', item.label)
+            : item.path === '/sales'
+            ? t('nav.sales', item.label)
+            : item.path === '/competitors'
+            ? t('nav.competitors', item.label)
+            : item.path === '/predictions'
+            ? t('nav.predictions', item.label)
+            : item.path === '/dataset'
+            ? t('nav.dataset', item.label)
+            : item.path === '/settings'
+            ? t('nav.settings', item.label)
+            : item.label}
+        </span>
       )}
       {!collapsed && location.pathname === item.path && (
         <span className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400" />

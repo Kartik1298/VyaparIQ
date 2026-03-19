@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, Building2, Bell, Shield, Palette, Globe, Save
 import PageHeader from '../components/ui/PageHeader'
 import ChartCard from '../components/ui/ChartCard'
 import { useTheme } from '../context/ThemeContext'
+import { useLanguage } from '../context/LanguageContext'
 
 const storeTypes = [
   { id: 'supermarket', label: 'Supermarket', icon: '🛒', desc: 'Grocery & FMCG analysis' },
@@ -15,6 +16,7 @@ const storeTypes = [
 
 const Settings: React.FC = () => {
   const { isDark, toggleTheme } = useTheme()
+  const { language, setLanguage, t } = useLanguage()
   const [selectedType, setSelectedType] = useState('department')
   const [notifications, setNotifications] = useState({
     inventoryAlerts: true,
@@ -33,8 +35,8 @@ const Settings: React.FC = () => {
   return (
     <div className="space-y-7">
       <PageHeader
-        title="Settings"
-        subtitle="Configure your store type, notifications, and platform preferences"
+        title={t('settings.title', 'Settings')}
+        subtitle={t('settings.subtitle', 'Configure your store type, notifications, and platform preferences')}
         icon={<SettingsIcon className="w-6 h-6 text-slate-400" />}
         actions={
           <button
@@ -113,12 +115,14 @@ const Settings: React.FC = () => {
 
             <div>
               <p className="text-sm dark:text-slate-300 text-slate-700 font-medium mb-3">Language</p>
-              <select className="w-full px-3 py-2 rounded-xl text-sm dark:bg-white/5 bg-slate-100 border dark:border-white/10 border-slate-200 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/50">
-                <option>English</option>
-                <option>Hindi</option>
-                <option>Marathi</option>
-                <option>Tamil</option>
-                <option>Bengali</option>
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value as any)}
+                className="w-full px-3 py-2 rounded-xl text-sm dark:bg-white/5 bg-slate-100 border dark:border-white/10 border-slate-200 dark:text-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              >
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="mr">Marathi</option>
               </select>
             </div>
 
